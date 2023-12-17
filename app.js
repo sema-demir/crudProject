@@ -11,6 +11,11 @@ let editFlag = false;
 //form gönderildiğinde addItem fonksiyonunu cagır
 form.addEventListener("submit", addItem);
 
+//temizle düğmesine tıkladıgımda clearItem fonksiyonunu cagır
+clearBtn.addEventListener("click", clearItems);
+
+//sayfa yuklendiğinde setupItems fonksiyonunu cagır
+window.addEventListener("DOMContentLoaded", setupItems)
 //!functions
 
 function addItem(e) {
@@ -39,15 +44,17 @@ function addItem(e) {
             `;
     //delete
     const deleteBtn = element.querySelector(".delete-btn");
-    deleteBtn.addEventListener("click", deleteItem)
-  
+    deleteBtn.addEventListener("click", deleteItem);
+
+    const editBtn = element.querySelector(".edit-btn");
+    editBtn.addEventListener("click", editItem);
 
     //
     list.appendChild(element);
     // console.log(element)
 
     //alert
-    displayAlert("Basarıyla Eklendi", "success");
+    displayAlert("Ürün Sepete Eklendi", "success");
     //show container
     container.classList.add("show-container");
 
@@ -56,6 +63,12 @@ function addItem(e) {
     //içeriği temizle
     setBackToDefault();
   } else if (value !== "" && editFlag) {
+    editElement.innerHTML = value;
+    displayAlert("Ürün Değiştirildi", "success");
+    editLocalStoroge(editID, value)
+    setBackToDefault();
+  } else {
+    displayAlert("Lütfen Bir Ürün Giriniz", "danger");
   }
 }
 
@@ -80,16 +93,62 @@ function setBackToDefault() {
 //silme işlemei
 function deleteItem(e) {
   const element = e.currentTarget.parentElement.parentElement;
-  const id = element.getAttribute("data-id");
+  const id = element.dataset.id;
   list.removeChild(element);
 
-  if (list.children.length === 0) {
+  if (list.children.length == 0) {
     container.classList.remove("show-container");
   }
+  displayAlert("Ürün İptal Edildi", "danger");
+ // yerel depodana kaldır
+  removeFromLocalStorage(id)
 }
-displayAlert("Eleman kaldırıldı", "danger");
+//düzenleme fonksiyonu
+function editItem(e) {
+  const element = e.currentTarget.parentElement.parentElement;
+  editElement = e.currentTarget.parentElement.previousElementSibling;
+  //console.log(editElement);
+  //formu düzenlenen metinle doldur
+  grocery.value = editElement.innerHTML;
+  editFlag = true;
+  editID = element.dataset.id;
+  submitBtn.textContent = "edit";
+}
+
+//listeyi temizle
+function clearItems() {
+  const items = document.querySelectorAll(".grocery-item");
+  if (items.length > 0) {
+    items.forEach(function (item) {
+      list.removeChild(item);
+    });
+  }
+  container.classList.remove("show-container")
+  displayAlert("Sepet Boş", "danger")
+  setBackToDefault()
+}
+//!localStorage işlemleri
 
 //yerel depoya öge ekleme
 function addToLocalStorage(id, value) {
-  console.log(id, value);
+  const grocery = { id, value };
+  let items = getLocalStorage()
+  items.push(grocery)
+  localStorage.setItem("list", JSON.stringify(items) )
+}
+function getLocalStorage(){
+  return localStorage.getItem("list") ? JSON.parse(localStorage.getItem("list")) : [];
+}
+function removeFromLocalStorage(id){
+  let items = getLocalStorage();
+  items = items.filter(function(item){
+   if (item.id !==id){
+      return item;
+    }
+  })
+}
+function editLocalStoroge(id, value){}
+
+function setupItems() {
+  let items = getLocalStorage()
 }
